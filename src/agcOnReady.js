@@ -2,8 +2,9 @@
 (function(){
     angular.module('googlechart')
         .directive('agcOnReady', onReadyDirective);
-        
-    function onReadyDirective(){
+    
+    onReadyDirective.$inject = ['$timeout'];
+    function onReadyDirective($timeout){
         return {
             restrict: 'A',
             scope: false,
@@ -11,7 +12,7 @@
             link: function(scope, element, attrs, googleChartController){
                 callback.$inject=['chartWrapper'];
                 function callback(chartWrapper){
-                    scope.$apply(function (){
+                    $timeout(function (){
                         scope.$eval(attrs.agcOnReady, {chartWrapper: chartWrapper});
                     });
                 }
