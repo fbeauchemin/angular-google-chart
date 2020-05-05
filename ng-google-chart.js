@@ -1,4 +1,4 @@
-/*! angular-google-chart 2017-05-20 */
+/*! angular-google-chart 2020-05-05 */
 /*
 * @description Google Chart Api Directive Module for AngularJS
 * @version 1.0.0-beta.1
@@ -359,9 +359,8 @@
     angular.module("googlechart")
         .factory("agcJsapiLoader", agcJsapiLoaderFactory);
 
-    agcJsapiLoaderFactory.$inject = ["$log", "$rootScope", "$q", "agcScriptTagHelper", "googleChartApiConfig"];
-    function agcJsapiLoaderFactory($log, $rootScope, $q, agcScriptTagHelper, googleChartApiConfig){
-        $log.debug("[AGC] jsapi loader invoked.");
+    agcJsapiLoaderFactory.$inject = ["$rootScope", "$q", "agcScriptTagHelper", "googleChartApiConfig", "$timeout"];
+    function agcJsapiLoaderFactory($rootScope, $q, agcScriptTagHelper, googleChartApiConfig, $timeout){
         var apiReady = $q.defer();
         // Massage configuration as needed.
         googleChartApiConfig.optionalSettings = googleChartApiConfig.optionalSettings || {};
@@ -373,7 +372,7 @@
                 if (angular.isFunction(userDefinedCallback))
                     userDefinedCallback.call(this);
 
-                $rootScope.$apply(function(){
+                $timeout(function(){
                     apiReady.resolve(google);
                 });
             }
@@ -381,14 +380,11 @@
 
         settings = angular.extend({}, googleChartApiConfig.optionalSettings, settings);
 
-        $log.debug("[AGC] Calling tag helper...");
         agcScriptTagHelper("https://www.google.com/jsapi")
             .then(function(){
-                $log.debug("[AGC] Tag helper returned success.");
                 window.google.load('visualization', googleChartApiConfig.version || '1', settings);
             })
             .catch(function(){
-                $log.error("[AGC] Tag helper returned error. Script may have failed to load.");
                 apiReady.reject();
             });
 
@@ -627,8 +623,9 @@
 (function(){
     angular.module('googlechart')
         .directive('agcOnReady', onReadyDirective);
-        
-    function onReadyDirective(){
+    
+    onReadyDirective.$inject = ['$timeout'];
+    function onReadyDirective($timeout){
         return {
             restrict: 'A',
             scope: false,
@@ -636,7 +633,7 @@
             link: function(scope, element, attrs, googleChartController){
                 callback.$inject=['chartWrapper'];
                 function callback(chartWrapper){
-                    scope.$apply(function (){
+                    $timeout(function (){
                         scope.$eval(attrs.agcOnReady, {chartWrapper: chartWrapper});
                     });
                 }
